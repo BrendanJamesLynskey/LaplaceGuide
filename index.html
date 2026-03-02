@@ -1,0 +1,1553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Laplace Transform — A Graphical Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Source+Code+Pro:wght@400;600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0c10;
+    --bg-card: #11141c;
+    --bg-card-hover: #161a25;
+    --accent: #4ecdc4;
+    --accent2: #ff6b6b;
+    --accent3: #ffe66d;
+    --accent4: #a78bfa;
+    --text: #e2e8f0;
+    --text-dim: #8892a8;
+    --border: #1e2433;
+    --glow: rgba(78, 205, 196, 0.15);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    line-height: 1.75;
+    overflow-x: hidden;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    padding: 2rem;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 40%, rgba(78,205,196,0.08), transparent),
+      radial-gradient(ellipse 50% 40% at 80% 70%, rgba(255,107,107,0.06), transparent),
+      radial-gradient(ellipse 40% 50% at 20% 60%, rgba(167,139,250,0.06), transparent);
+    pointer-events: none;
+  }
+
+  .hero-badge {
+    font-family: 'Source Code Pro', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--accent);
+    border: 1px solid rgba(78,205,196,0.3);
+    padding: 0.4rem 1.2rem;
+    border-radius: 999px;
+    margin-bottom: 2.5rem;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.2s forwards;
+  }
+
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.8rem, 7vw, 6rem);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    max-width: 900px;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.4s forwards;
+  }
+
+  .hero h1 .script {
+    font-style: italic;
+    color: var(--accent);
+    display: inline-block;
+  }
+
+  .hero-sub {
+    font-size: 1.15rem;
+    color: var(--text-dim);
+    max-width: 580px;
+    margin-top: 1.5rem;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.6s forwards;
+  }
+
+  .hero-formula {
+    font-family: 'Source Code Pro', monospace;
+    font-size: clamp(1rem, 2.5vw, 1.35rem);
+    color: var(--accent);
+    background: rgba(78,205,196,0.06);
+    border: 1px solid rgba(78,205,196,0.15);
+    padding: 1rem 2.5rem;
+    border-radius: 12px;
+    margin-top: 3rem;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.8s forwards;
+    position: relative;
+  }
+
+  .hero-formula::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(78,205,196,0.2), transparent, rgba(167,139,250,0.2));
+    z-index: -1;
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    padding: 1px;
+  }
+
+  .scroll-hint {
+    position: absolute;
+    bottom: 2.5rem;
+    opacity: 0;
+    animation: fadeUp 0.8s 1.2s forwards, float 2.5s 2s infinite;
+  }
+
+  .scroll-hint svg {
+    width: 28px;
+    height: 28px;
+    stroke: var(--text-dim);
+  }
+
+  /* ── SECTIONS ── */
+  .section {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 6rem 2rem;
+    opacity: 0;
+    transform: translateY(40px);
+    transition: opacity 0.7s, transform 0.7s;
+  }
+
+  .section.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .section-label {
+    font-family: 'Source Code Pro', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.75rem;
+  }
+
+  .section h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 1.5rem;
+  }
+
+  .section p {
+    color: var(--text-dim);
+    font-size: 1.05rem;
+    max-width: 680px;
+    margin-bottom: 1.25rem;
+  }
+
+  .section p strong {
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  /* ── CANVAS CONTAINERS ── */
+  .canvas-wrap {
+    position: relative;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    margin: 2.5rem 0;
+  }
+
+  .canvas-wrap canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .canvas-controls {
+    display: flex;
+    gap: 0.75rem;
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--border);
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .canvas-controls label {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    font-family: 'Source Code Pro', monospace;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .canvas-controls input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 120px;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    outline: none;
+  }
+
+  .canvas-controls input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    box-shadow: 0 0 8px rgba(78,205,196,0.4);
+  }
+
+  .canvas-controls button {
+    font-family: 'Source Code Pro', monospace;
+    font-size: 0.75rem;
+    padding: 0.35rem 1rem;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .canvas-controls button:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(78,205,196,0.05);
+  }
+
+  .canvas-controls button.active {
+    border-color: var(--accent);
+    background: rgba(78,205,196,0.12);
+    color: var(--accent);
+  }
+
+  /* ── TRANSFORM TABLE ── */
+  .transform-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 2rem 0;
+    font-size: 0.95rem;
+  }
+
+  .transform-table th {
+    font-family: 'Source Code Pro', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--accent);
+    text-align: left;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .transform-table td {
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid rgba(30,36,51,0.5);
+    color: var(--text-dim);
+    font-family: 'Source Code Pro', monospace;
+    font-size: 0.88rem;
+    transition: background 0.2s;
+  }
+
+  .transform-table tr:hover td {
+    background: rgba(78,205,196,0.03);
+    color: var(--text);
+  }
+
+  .transform-table td:first-child {
+    color: var(--accent3);
+  }
+
+  .transform-table td:nth-child(2) {
+    color: var(--accent);
+  }
+
+  .transform-table td:nth-child(3) {
+    color: var(--text-dim);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+  }
+
+  /* ── PROPERTY CARDS ── */
+  .prop-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1rem;
+    margin: 2rem 0;
+  }
+
+  .prop-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: border-color 0.3s, transform 0.3s;
+  }
+
+  .prop-card:hover {
+    border-color: rgba(78,205,196,0.3);
+    transform: translateY(-2px);
+  }
+
+  .prop-card h4 {
+    font-family: 'Source Code Pro', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.75rem;
+  }
+
+  .prop-card .formula {
+    font-family: 'Source Code Pro', monospace;
+    font-size: 0.95rem;
+    color: var(--text);
+    margin-bottom: 0.5rem;
+  }
+
+  .prop-card .desc {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    line-height: 1.6;
+  }
+
+  /* ── NAV ── */
+  .toc {
+    position: fixed;
+    right: 1.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .toc a {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--border);
+    transition: all 0.3s;
+    display: block;
+  }
+
+  .toc a.active {
+    background: var(--accent);
+    box-shadow: 0 0 10px rgba(78,205,196,0.5);
+    transform: scale(1.3);
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    border-top: 1px solid var(--border);
+  }
+
+  footer a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+
+  /* ── KEYFRAMES ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(8px); }
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    .toc { display: none; }
+    .section { padding: 4rem 1.25rem; }
+    .canvas-controls { padding: 0.75rem 1rem; }
+    .prop-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════ HERO ═══════════ -->
+<section class="hero">
+  <div class="hero-badge">An Interactive Visual Guide</div>
+  <h1>The <span class="script">Laplace</span> Transform</h1>
+  <p class="hero-sub">
+    From time-domain signals to the complex frequency plane — understand the transform that underpins control theory, circuit analysis, and differential equations.
+  </p>
+  <div class="hero-formula">ℒ{f(t)} = F(s) = ∫₀<sup>∞</sup> f(t) · e<sup>−st</sup> dt</div>
+  <div class="scroll-hint">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+  </div>
+</section>
+
+<!-- ═══════════ NAV DOTS ═══════════ -->
+<nav class="toc" id="toc"></nav>
+
+<!-- ═══════════ 1 — INTUITION ═══════════ -->
+<section class="section" id="sec-intuition">
+  <div class="section-label">01 — Intuition</div>
+  <h2>What Does It Actually Do?</h2>
+  <p>
+    The Laplace Transform decomposes a time-domain signal <strong>f(t)</strong> into a
+    continuous spectrum of <strong>complex exponentials</strong>. Each point in the
+    <em>s</em>-plane encodes both a frequency (oscillation rate) and a growth/decay rate.
+  </p>
+  <p>
+    The parameter <strong>s = σ + jω</strong> has a real part σ that controls
+    exponential growth or decay, and an imaginary part ω that controls oscillation.
+    The animation below multiplies a signal by <em>e<sup>−st</sup></em> for varying <em>s</em>
+    and integrates — watch how different values of σ and ω "pick out" different components.
+  </p>
+
+  <div class="canvas-wrap">
+    <canvas id="cvs-intuition" width="920" height="420"></canvas>
+    <div class="canvas-controls">
+      <label>σ <input type="range" id="ctrl-sigma" min="-3" max="3" step="0.1" value="0.5"></label>
+      <label>ω <input type="range" id="ctrl-omega" min="0" max="20" step="0.5" value="5"></label>
+      <button id="btn-play-intuition" class="active">▶ Animate</button>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ 2 — KERNEL ═══════════ -->
+<section class="section" id="sec-kernel">
+  <div class="section-label">02 — The Kernel</div>
+  <h2>Anatomy of e<sup>−st</sup></h2>
+  <p>
+    The complex exponential <strong>e<sup>−st</sup></strong> = e<sup>−σt</sup> · e<sup>−jωt</sup>
+    is the "probing" kernel. The first factor is a <strong>real envelope</strong> that
+    grows or decays; the second is a <strong>rotating phasor</strong> that oscillates.
+  </p>
+  <p>
+    Below, you can see both components and their product. Drag <strong>σ</strong> to control
+    the envelope and <strong>ω</strong> to control the oscillation frequency.
+  </p>
+
+  <div class="canvas-wrap">
+    <canvas id="cvs-kernel" width="920" height="380"></canvas>
+    <div class="canvas-controls">
+      <label>σ <input type="range" id="ctrl-k-sigma" min="-2" max="4" step="0.1" value="1"></label>
+      <label>ω <input type="range" id="ctrl-k-omega" min="0" max="25" step="0.5" value="8"></label>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ 3 — S-PLANE ═══════════ -->
+<section class="section" id="sec-splane">
+  <div class="section-label">03 — The s-Plane</div>
+  <h2>Poles, Zeros &amp; Stability</h2>
+  <p>
+    The result of the Laplace Transform is a function <strong>F(s)</strong> defined over the
+    complex <em>s</em>-plane. For rational transforms (the most common in engineering),
+    F(s) is a ratio of polynomials whose roots give <strong>poles</strong> (×) and <strong>zeros</strong> (○).
+  </p>
+  <p>
+    A system is <strong>stable</strong> when all poles lie in the left half-plane (σ&lt;0).
+    Poles on the imaginary axis give sustained oscillation; poles in the right half-plane mean
+    exponential blow-up. Click a preset to see how pole location shapes the time-domain response.
+  </p>
+
+  <div class="canvas-wrap">
+    <canvas id="cvs-splane" width="920" height="460"></canvas>
+    <div class="canvas-controls">
+      <button class="active" data-poles="-1,0" data-label="Stable real pole">Stable (real)</button>
+      <button data-poles="-0.5,4;-0.5,-4" data-label="Stable complex pair">Stable (complex)</button>
+      <button data-poles="0,5;0,-5" data-label="Marginally stable">Marginal</button>
+      <button data-poles="0.3,4;0.3,-4" data-label="Unstable complex pair">Unstable</button>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ 4 — COMMON TRANSFORMS ═══════════ -->
+<section class="section" id="sec-table">
+  <div class="section-label">04 — Reference</div>
+  <h2>Common Laplace Pairs</h2>
+  <p>
+    These are the fundamental transform pairs you'll encounter most often.
+    Each row links a time-domain function to its <em>s</em>-domain counterpart.
+  </p>
+
+  <table class="transform-table">
+    <thead>
+      <tr><th>f(t)</th><th>F(s)</th><th>Region of Convergence</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>1 (step)</td><td>1/s</td><td>Re(s) &gt; 0</td></tr>
+      <tr><td>t</td><td>1/s²</td><td>Re(s) &gt; 0</td></tr>
+      <tr><td>tⁿ</td><td>n!/s<sup>n+1</sup></td><td>Re(s) &gt; 0</td></tr>
+      <tr><td>e<sup>at</sup></td><td>1/(s − a)</td><td>Re(s) &gt; Re(a)</td></tr>
+      <tr><td>sin(ωt)</td><td>ω/(s² + ω²)</td><td>Re(s) &gt; 0</td></tr>
+      <tr><td>cos(ωt)</td><td>s/(s² + ω²)</td><td>Re(s) &gt; 0</td></tr>
+      <tr><td>e<sup>at</sup>sin(ωt)</td><td>ω/((s−a)² + ω²)</td><td>Re(s) &gt; a</td></tr>
+      <tr><td>e<sup>at</sup>cos(ωt)</td><td>(s−a)/((s−a)² + ω²)</td><td>Re(s) &gt; a</td></tr>
+      <tr><td>δ(t)</td><td>1</td><td>All s</td></tr>
+      <tr><td>u(t − a)</td><td>e<sup>−as</sup>/s</td><td>Re(s) &gt; 0</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ═══════════ 5 — PROPERTIES ═══════════ -->
+<section class="section" id="sec-properties">
+  <div class="section-label">05 — Properties</div>
+  <h2>Key Properties</h2>
+  <p>
+    The real power of the Laplace Transform comes from its operational properties,
+    which turn calculus operations into simple algebra.
+  </p>
+
+  <div class="prop-grid">
+    <div class="prop-card">
+      <h4>Linearity</h4>
+      <div class="formula">ℒ{af + bg} = aF + bG</div>
+      <div class="desc">Scale and superpose freely — the transform distributes over addition.</div>
+    </div>
+    <div class="prop-card">
+      <h4>Differentiation</h4>
+      <div class="formula">ℒ{f′(t)} = sF(s) − f(0)</div>
+      <div class="desc">Derivatives become multiplication by s, turning ODEs into algebraic equations.</div>
+    </div>
+    <div class="prop-card">
+      <h4>Integration</h4>
+      <div class="formula">ℒ{∫f dt} = F(s)/s</div>
+      <div class="desc">Integration becomes division by s — the inverse of differentiation.</div>
+    </div>
+    <div class="prop-card">
+      <h4>Time Shift</h4>
+      <div class="formula">ℒ{f(t−a)u(t−a)} = e<sup>−as</sup>F(s)</div>
+      <div class="desc">Delaying a signal multiplies its transform by a complex exponential.</div>
+    </div>
+    <div class="prop-card">
+      <h4>Frequency Shift</h4>
+      <div class="formula">ℒ{e<sup>at</sup>f(t)} = F(s − a)</div>
+      <div class="desc">Multiplying by an exponential shifts the transform in the s-plane.</div>
+    </div>
+    <div class="prop-card">
+      <h4>Convolution</h4>
+      <div class="formula">ℒ{f * g} = F(s)·G(s)</div>
+      <div class="desc">Convolution in time becomes multiplication in s — the cornerstone of LTI system analysis.</div>
+    </div>
+    <div class="prop-card">
+      <h4>Initial Value</h4>
+      <div class="formula">f(0⁺) = lim<sub>s→∞</sub> sF(s)</div>
+      <div class="desc">Read the initial condition directly from the s-domain without inverting.</div>
+    </div>
+    <div class="prop-card">
+      <h4>Final Value</h4>
+      <div class="formula">f(∞) = lim<sub>s→0</sub> sF(s)</div>
+      <div class="desc">Find steady-state without solving the full time-domain — if all poles are in the LHP.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ 6 — SOLVING ODEs ═══════════ -->
+<section class="section" id="sec-ode">
+  <div class="section-label">06 — Application</div>
+  <h2>Solving ODEs with Laplace</h2>
+  <p>
+    The classic application: transform a differential equation, solve the resulting algebra, then
+    invert. The animation shows the three-step process for a damped spring–mass system.
+  </p>
+
+  <div class="canvas-wrap">
+    <canvas id="cvs-ode" width="920" height="420"></canvas>
+    <div class="canvas-controls">
+      <label>Damping ζ <input type="range" id="ctrl-zeta" min="0" max="2" step="0.05" value="0.3"></label>
+      <label>ωₙ <input type="range" id="ctrl-wn" min="1" max="12" step="0.5" value="5"></label>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ 7 — ROC ═══════════ -->
+<section class="section" id="sec-roc">
+  <div class="section-label">07 — Region of Convergence</div>
+  <h2>Why the ROC Matters</h2>
+  <p>
+    The Laplace Transform integral only converges for certain values of <strong>s</strong>.
+    The <strong>Region of Convergence</strong> determines uniqueness: different time-domain
+    signals can share the same algebraic expression for F(s) but have different ROCs.
+  </p>
+  <p>
+    For <strong>causal signals</strong> (f(t) = 0 for t&lt;0), the ROC is always a right
+    half-plane to the right of the rightmost pole. For <strong>anti-causal signals</strong>,
+    it's a left half-plane.  The animation below illustrates this.
+  </p>
+
+  <div class="canvas-wrap">
+    <canvas id="cvs-roc" width="920" height="400"></canvas>
+    <div class="canvas-controls">
+      <button class="active" data-roc="causal">Causal: e<sup>−2t</sup>u(t)</button>
+      <button data-roc="anticausal">Anti-causal: −e<sup>−2t</sup>u(−t)</button>
+      <button data-roc="twosided">Two-sided</button>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ FOOTER ═══════════ -->
+<footer>
+  <p>A graphical guide to the Laplace Transform · Built with vanilla HTML, CSS &amp; Canvas</p>
+  <p style="margin-top:0.5rem;">
+    <a href="https://github.com" target="_blank">View on GitHub</a>
+  </p>
+</footer>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!--                        SCRIPTS                             -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<script>
+// ────────────── GLOBAL HELPERS ──────────────
+const DPR = Math.min(window.devicePixelRatio || 1, 2);
+
+function setupCanvas(id) {
+  const c = document.getElementById(id);
+  const logW = parseInt(c.getAttribute('width'));
+  const logH = parseInt(c.getAttribute('height'));
+  c.width = logW * DPR;
+  c.height = logH * DPR;
+  c.style.width = logW + 'px';
+  c.style.maxWidth = '100%';
+  c.style.height = 'auto';
+  const ctx = c.getContext('2d');
+  ctx.scale(DPR, DPR);
+  return { c, ctx, W: logW, H: logH };
+}
+
+function drawAxes(ctx, ox, oy, W, H, xLabel, yLabel, color = '#1e2433') {
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(ox, 10);
+  ctx.lineTo(ox, H - 10);
+  ctx.moveTo(10, oy);
+  ctx.lineTo(W - 10, oy);
+  ctx.stroke();
+
+  ctx.fillStyle = '#8892a8';
+  ctx.font = '11px "Source Code Pro", monospace';
+  if (xLabel) ctx.fillText(xLabel, W - 30, oy - 8);
+  if (yLabel) ctx.fillText(yLabel, ox + 8, 18);
+}
+
+function lerp(a, b, t) { return a + (b - a) * t; }
+
+// ────────────── INTERSECTION OBSERVER ──────────────
+const sections = document.querySelectorAll('.section');
+const tocNav = document.getElementById('toc');
+sections.forEach((s, i) => {
+  const dot = document.createElement('a');
+  dot.href = '#' + s.id;
+  tocNav.appendChild(dot);
+});
+const tocDots = tocNav.querySelectorAll('a');
+
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('visible');
+      const idx = [...sections].indexOf(e.target);
+      tocDots.forEach((d, i) => d.classList.toggle('active', i === idx));
+    }
+  });
+}, { threshold: 0.15 });
+sections.forEach(s => observer.observe(s));
+
+// ═══════════════════════════════════════════════
+// 1 — INTUITION ANIMATION
+// ═══════════════════════════════════════════════
+(function() {
+  const { ctx, W, H } = setupCanvas('cvs-intuition');
+  const sigmaSlider = document.getElementById('ctrl-sigma');
+  const omegaSlider = document.getElementById('ctrl-omega');
+  const playBtn = document.getElementById('btn-play-intuition');
+  let playing = true;
+  let time = 0;
+
+  playBtn.onclick = () => {
+    playing = !playing;
+    playBtn.textContent = playing ? '▶ Animate' : '⏸ Pause';
+    playBtn.classList.toggle('active', playing);
+  };
+
+  function signal(t) {
+    return 0.6 * Math.sin(3 * t) + 0.3 * Math.sin(7 * t) + 0.15 * Math.cos(12 * t);
+  }
+
+  function draw() {
+    const sigma = parseFloat(sigmaSlider.value);
+    const omega = parseFloat(omegaSlider.value);
+
+    ctx.clearRect(0, 0, W, H);
+
+    // Panels
+    const pw = (W - 60) / 3;
+    const panels = [
+      { x: 20, label: 'f(t) — Input Signal' },
+      { x: 30 + pw, label: 'e⁻ˢᵗ · f(t) — Weighted' },
+      { x: 40 + pw * 2, label: '∫ — Accumulation' }
+    ];
+
+    panels.forEach((p, pi) => {
+      const cx = p.x;
+      const mid = H / 2;
+      const amp = 130;
+
+      // Panel label
+      ctx.fillStyle = '#8892a8';
+      ctx.font = '11px "Source Code Pro", monospace';
+      ctx.fillText(p.label, cx, 22);
+
+      // Axis
+      ctx.strokeStyle = '#1e2433';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(cx, mid);
+      ctx.lineTo(cx + pw - 10, mid);
+      ctx.stroke();
+
+      // Draw signal
+      ctx.lineWidth = 2;
+      const dt = 0.02;
+      const N = Math.floor(pw / 2);
+
+      if (pi === 0) {
+        // f(t)
+        ctx.strokeStyle = '#ffe66d';
+        ctx.beginPath();
+        for (let i = 0; i < N; i++) {
+          const t = i * dt + (playing ? time * 0.001 : 0) * 0;
+          const v = signal(i * dt);
+          const x = cx + (i / N) * (pw - 10);
+          const y = mid - v * amp;
+          i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+      } else if (pi === 1) {
+        // e^{-st} * f(t)
+        ctx.strokeStyle = 'rgba(78,205,196,0.25)';
+        ctx.beginPath();
+        for (let i = 0; i < N; i++) {
+          const t = i * dt;
+          const env = Math.exp(-sigma * t);
+          const x = cx + (i / N) * (pw - 10);
+          const y = mid - env * amp;
+          i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+
+        ctx.strokeStyle = '#4ecdc4';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        for (let i = 0; i < N; i++) {
+          const t = i * dt;
+          const env = Math.exp(-sigma * t);
+          const cosine = Math.cos(omega * t);
+          const v = signal(t) * env * cosine;
+          const x = cx + (i / N) * (pw - 10);
+          const y = mid - v * amp;
+          i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+      } else {
+        // Accumulation
+        let accum = 0;
+        ctx.strokeStyle = '#ff6b6b';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        for (let i = 0; i < N; i++) {
+          const t = i * dt;
+          const env = Math.exp(-sigma * t);
+          const cosine = Math.cos(omega * t);
+          accum += signal(t) * env * cosine * dt;
+          const x = cx + (i / N) * (pw - 10);
+          const y = mid - accum * amp * 0.6;
+          i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+
+        // Final value indicator
+        ctx.fillStyle = '#ff6b6b';
+        ctx.beginPath();
+        const fx = cx + pw - 15;
+        const fy = mid - accum * amp * 0.6;
+        ctx.arc(fx, Math.max(30, Math.min(H - 30, fy)), 4, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#ff6b6b';
+        ctx.font = '600 12px "Source Code Pro", monospace';
+        ctx.fillText('F(s) ≈ ' + accum.toFixed(3), cx + 10, H - 50);
+      }
+    });
+
+    // Sweep bar
+    if (playing) {
+      const sweepX = 30 + pw + (((time * 0.03) % 100) / 100) * (pw - 10);
+      ctx.strokeStyle = 'rgba(78,205,196,0.3)';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.moveTo(sweepX, 30);
+      ctx.lineTo(sweepX, H - 20);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    // Info
+    ctx.fillStyle = '#8892a8';
+    ctx.font = '12px "Source Code Pro", monospace';
+    ctx.fillText(`s = ${sigma.toFixed(1)} + j${omega.toFixed(1)}`, W - 160, H - 20);
+
+    if (playing) time += 16;
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+// ═══════════════════════════════════════════════
+// 2 — KERNEL ANIMATION
+// ═══════════════════════════════════════════════
+(function() {
+  const { ctx, W, H } = setupCanvas('cvs-kernel');
+  const sigmaSlider = document.getElementById('ctrl-k-sigma');
+  const omegaSlider = document.getElementById('ctrl-k-omega');
+  let phase = 0;
+
+  function draw() {
+    const sigma = parseFloat(sigmaSlider.value);
+    const omega = parseFloat(omegaSlider.value);
+    ctx.clearRect(0, 0, W, H);
+
+    const ox = 80;
+    const mid = H / 2;
+    const plotW = W - ox - 30;
+    const amp = 120;
+    const dt = 0.015;
+    const N = Math.floor(plotW / 1.5);
+
+    // Labels
+    ctx.fillStyle = '#8892a8';
+    ctx.font = '11px "Source Code Pro", monospace';
+    ctx.fillText('t →', W - 30, mid + 16);
+
+    // Draw envelope e^{-σt}
+    ctx.strokeStyle = 'rgba(167,139,250,0.4)';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([6, 4]);
+    ctx.beginPath();
+    for (let i = 0; i < N; i++) {
+      const t = i * dt;
+      const v = Math.exp(-sigma * t);
+      const x = ox + (i / N) * plotW;
+      const y = mid - v * amp;
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+    // Negative envelope
+    ctx.beginPath();
+    for (let i = 0; i < N; i++) {
+      const t = i * dt;
+      const v = -Math.exp(-sigma * t);
+      const x = ox + (i / N) * plotW;
+      const y = mid - v * amp;
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Draw cos(ωt) only (faded)
+    ctx.strokeStyle = 'rgba(255,230,109,0.2)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    for (let i = 0; i < N; i++) {
+      const t = i * dt;
+      const v = Math.cos(omega * t + phase);
+      const x = ox + (i / N) * plotW;
+      const y = mid - v * amp;
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+
+    // Draw e^{-σt} cos(ωt) — the kernel
+    ctx.strokeStyle = '#4ecdc4';
+    ctx.lineWidth = 2.5;
+    ctx.shadowColor = 'rgba(78,205,196,0.3)';
+    ctx.shadowBlur = 8;
+    ctx.beginPath();
+    for (let i = 0; i < N; i++) {
+      const t = i * dt;
+      const v = Math.exp(-sigma * t) * Math.cos(omega * t + phase);
+      const x = ox + (i / N) * plotW;
+      const y = mid - v * amp;
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // Zero line
+    ctx.strokeStyle = '#1e2433';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(ox, mid);
+    ctx.lineTo(ox + plotW, mid);
+    ctx.stroke();
+
+    // Legend
+    const lx = ox + 10, ly = 28;
+    ctx.font = '11px "Source Code Pro", monospace';
+    const legends = [
+      { color: 'rgba(167,139,250,0.6)', label: 'e⁻σᵗ envelope' },
+      { color: 'rgba(255,230,109,0.4)', label: 'cos(ωt)' },
+      { color: '#4ecdc4', label: 'e⁻σᵗcos(ωt) kernel' }
+    ];
+    legends.forEach((l, i) => {
+      ctx.fillStyle = l.color;
+      ctx.fillRect(lx + i * 190, ly, 14, 3);
+      ctx.fillStyle = '#8892a8';
+      ctx.fillText(l.label, lx + 20 + i * 190, ly + 5);
+    });
+
+    // Info
+    ctx.fillStyle = '#8892a8';
+    ctx.font = '12px "Source Code Pro", monospace';
+    ctx.fillText(`σ = ${sigma.toFixed(1)}  ω = ${omega.toFixed(1)}`, W - 200, H - 20);
+
+    phase += 0.025;
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+// ═══════════════════════════════════════════════
+// 3 — S-PLANE + TIME RESPONSE
+// ═══════════════════════════════════════════════
+(function() {
+  const { ctx, W, H } = setupCanvas('cvs-splane');
+  const btns = document.querySelectorAll('#sec-splane .canvas-controls button');
+  let poles = [{ re: -1, im: 0 }];
+  let currentLabel = 'Stable real pole';
+  let animT = 0;
+
+  btns.forEach(btn => {
+    btn.onclick = () => {
+      btns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentLabel = btn.dataset.label;
+      const ps = btn.dataset.poles.split(';').map(p => {
+        const [r, i] = p.split(',').map(Number);
+        return { re: r, im: i };
+      });
+      poles = ps;
+      animT = 0;
+    };
+  });
+
+  function impulseResponse(t, poles) {
+    let val = 0;
+    for (const p of poles) {
+      val += Math.exp(p.re * t) * Math.cos(p.im * t);
+    }
+    return val / poles.length;
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+
+    // ── LEFT: s-plane ──
+    const spW = W * 0.42;
+    const spOx = spW / 2;
+    const spOy = H / 2;
+    const scale = 40;
+
+    // Grid
+    ctx.strokeStyle = 'rgba(30,36,51,0.7)';
+    ctx.lineWidth = 0.5;
+    for (let i = -5; i <= 5; i++) {
+      ctx.beginPath();
+      ctx.moveTo(spOx + i * scale, 10);
+      ctx.lineTo(spOx + i * scale, H - 10);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(10, spOy + i * scale);
+      ctx.lineTo(spW - 10, spOy + i * scale);
+      ctx.stroke();
+    }
+
+    // Axes
+    ctx.strokeStyle = '#2a3040';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(10, spOy);
+    ctx.lineTo(spW - 10, spOy);
+    ctx.moveTo(spOx, 10);
+    ctx.lineTo(spOx, H - 10);
+    ctx.stroke();
+
+    // Shade LHP (stable region)
+    ctx.fillStyle = 'rgba(78,205,196,0.03)';
+    ctx.fillRect(10, 10, spOx - 10, H - 20);
+
+    // Labels
+    ctx.fillStyle = '#8892a8';
+    ctx.font = '11px "Source Code Pro", monospace';
+    ctx.fillText('σ', spW - 20, spOy - 8);
+    ctx.fillText('jω', spOx + 8, 20);
+    ctx.fillText('STABLE', 20, H - 20);
+    ctx.fillStyle = 'rgba(78,205,196,0.2)';
+    ctx.fillText('Re(s)<0', 20, H - 36);
+
+    // Poles
+    const pulse = 0.5 + 0.5 * Math.sin(animT * 0.04);
+    poles.forEach(p => {
+      const px = spOx + p.re * scale;
+      const py = spOy - p.im * scale;
+
+      // Glow
+      const grad = ctx.createRadialGradient(px, py, 0, px, py, 16 + pulse * 8);
+      grad.addColorStop(0, 'rgba(255,107,107,0.4)');
+      grad.addColorStop(1, 'rgba(255,107,107,0)');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(px, py, 16 + pulse * 8, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Cross
+      ctx.strokeStyle = '#ff6b6b';
+      ctx.lineWidth = 2.5;
+      const cs = 7;
+      ctx.beginPath();
+      ctx.moveTo(px - cs, py - cs);
+      ctx.lineTo(px + cs, py + cs);
+      ctx.moveTo(px + cs, py - cs);
+      ctx.lineTo(px - cs, py + cs);
+      ctx.stroke();
+    });
+
+    // ── RIGHT: Time response ──
+    const trX = spW + 40;
+    const trW = W - trX - 20;
+    const trMid = H / 2;
+    const trAmp = 140;
+
+    // Label
+    ctx.fillStyle = '#8892a8';
+    ctx.font = '11px "Source Code Pro", monospace';
+    ctx.fillText('Impulse Response h(t)', trX, 22);
+    ctx.fillText(currentLabel, trX, H - 20);
+    ctx.fillText('t →', W - 30, trMid + 16);
+
+    // Axis
+    ctx.strokeStyle = '#1e2433';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(trX, trMid);
+    ctx.lineTo(trX + trW, trMid);
+    ctx.stroke();
+
+    // Draw response
+    const dt = 0.02;
+    const N = Math.floor(trW / 1.5);
+    const drawN = Math.min(N, Math.floor(animT * 2));
+
+    ctx.strokeStyle = '#ffe66d';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (let i = 0; i < drawN; i++) {
+      const t = i * dt;
+      let v = impulseResponse(t, poles);
+      v = Math.max(-1.5, Math.min(1.5, v)); // clamp
+      const x = trX + (i / N) * trW;
+      const y = trMid - v * trAmp;
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+
+    // Fill under curve
+    if (drawN > 1) {
+      ctx.globalAlpha = 0.08;
+      ctx.fillStyle = '#ffe66d';
+      ctx.beginPath();
+      ctx.moveTo(trX, trMid);
+      for (let i = 0; i < drawN; i++) {
+        const t = i * dt;
+        let v = impulseResponse(t, poles);
+        v = Math.max(-1.5, Math.min(1.5, v));
+        const x = trX + (i / N) * trW;
+        const y = trMid - v * trAmp;
+        ctx.lineTo(x, y);
+      }
+      ctx.lineTo(trX + ((drawN - 1) / N) * trW, trMid);
+      ctx.closePath();
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+
+    animT++;
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+// ═══════════════════════════════════════════════
+// 6 — ODE SOLVER ANIMATION
+// ═══════════════════════════════════════════════
+(function() {
+  const { ctx, W, H } = setupCanvas('cvs-ode');
+  const zetaSlider = document.getElementById('ctrl-zeta');
+  const wnSlider = document.getElementById('ctrl-wn');
+  let animT = 0;
+
+  function draw() {
+    const zeta = parseFloat(zetaSlider.value);
+    const wn = parseFloat(wnSlider.value);
+    ctx.clearRect(0, 0, W, H);
+
+    const ox = 80;
+    const mid = H / 2;
+    const plotW = W - ox - 30;
+    const amp = 150;
+    const dt = 0.015;
+    const N = Math.floor(plotW / 1.5);
+    const drawN = Math.min(N, Math.floor(animT * 1.5));
+
+    // Title
+    ctx.fillStyle = '#8892a8';
+    ctx.font = '11px "Source Code Pro", monospace';
+    ctx.fillText(`ẍ + 2ζωₙẋ + ωₙ²x = δ(t)    ζ=${zeta.toFixed(2)}  ωₙ=${wn.toFixed(1)}`, ox, 22);
+
+    // Classification
+    let modeLabel = '';
+    let modeColor = '';
+    if (zeta < 1) { modeLabel = 'Underdamped'; modeColor = '#4ecdc4'; }
+    else if (zeta === 1) { modeLabel = 'Critically Damped'; modeColor = '#ffe66d'; }
+    else { modeLabel = 'Overdamped'; modeColor = '#ff6b6b'; }
+
+    ctx.fillStyle = modeColor;
+    ctx.font = '600 13px "Source Code Pro", monospace';
+    ctx.fillText(modeLabel, W - 200, 22);
+
+    // Zero axis
+    ctx.strokeStyle = '#1e2433';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(ox, mid);
+    ctx.lineTo(ox + plotW, mid);
+    ctx.stroke();
+
+    ctx.fillStyle = '#8892a8';
+    ctx.font = '11px "Source Code Pro", monospace';
+    ctx.fillText('t →', W - 30, mid + 16);
+
+    // Compute response
+    function response(t) {
+      if (zeta < 1) {
+        const wd = wn * Math.sqrt(1 - zeta * zeta);
+        return (1 / wd) * Math.exp(-zeta * wn * t) * Math.sin(wd * t);
+      } else if (zeta === 1) {
+        return t * Math.exp(-wn * t);
+      } else {
+        const s1 = -wn * (zeta - Math.sqrt(zeta * zeta - 1));
+        const s2 = -wn * (zeta + Math.sqrt(zeta * zeta - 1));
+        if (Math.abs(s1 - s2) < 0.001) return t * Math.exp(s1 * t);
+        return (1 / (s1 - s2)) * (Math.exp(s1 * t) - Math.exp(s2 * t));
+      }
+    }
+
+    // Find peak for normalisation
+    let peak = 0;
+    for (let i = 0; i < N; i++) {
+      const v = Math.abs(response(i * dt));
+      if (v > peak) peak = v;
+    }
+    if (peak < 0.001) peak = 1;
+
+    // Envelope (underdamped only)
+    if (zeta < 1 && zeta > 0) {
+      const wd = wn * Math.sqrt(1 - zeta * zeta);
+      ctx.strokeStyle = 'rgba(167,139,250,0.25)';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([5, 4]);
+      ctx.beginPath();
+      for (let i = 0; i < N; i++) {
+        const t = i * dt;
+        const env = (1 / wd) * Math.exp(-zeta * wn * t);
+        const x = ox + (i / N) * plotW;
+        const y = mid - (env / peak) * amp;
+        i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+      ctx.beginPath();
+      for (let i = 0; i < N; i++) {
+        const t = i * dt;
+        const env = -(1 / wd) * Math.exp(-zeta * wn * t);
+        const x = ox + (i / N) * plotW;
+        const y = mid - (env / peak) * amp;
+        i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    // Draw response
+    ctx.strokeStyle = modeColor;
+    ctx.lineWidth = 2.5;
+    ctx.shadowColor = modeColor;
+    ctx.shadowBlur = 6;
+    ctx.beginPath();
+    for (let i = 0; i < drawN; i++) {
+      const t = i * dt;
+      const v = response(t) / peak;
+      const x = ox + (i / N) * plotW;
+      const y = mid - v * amp;
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // Fill
+    if (drawN > 1) {
+      ctx.globalAlpha = 0.06;
+      ctx.fillStyle = modeColor;
+      ctx.beginPath();
+      ctx.moveTo(ox, mid);
+      for (let i = 0; i < drawN; i++) {
+        const t = i * dt;
+        const v = response(t) / peak;
+        const x = ox + (i / N) * plotW;
+        const y = mid - v * amp;
+        ctx.lineTo(x, y);
+      }
+      ctx.lineTo(ox + ((drawN - 1) / N) * plotW, mid);
+      ctx.closePath();
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+
+    // ODE in s-domain
+    ctx.fillStyle = '#8892a8';
+    ctx.font = '12px "Source Code Pro", monospace';
+    ctx.fillText(`H(s) = 1 / (s² + ${(2*zeta*wn).toFixed(1)}s + ${(wn*wn).toFixed(1)})`, ox, H - 20);
+
+    // Pole locations
+    const re = -zeta * wn;
+    const im = zeta < 1 ? wn * Math.sqrt(1 - zeta * zeta) : 0;
+    ctx.fillText(`Poles: ${re.toFixed(2)} ± j${im.toFixed(2)}`, ox + 320, H - 20);
+
+    animT++;
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+// ═══════════════════════════════════════════════
+// 7 — ROC ANIMATION
+// ═══════════════════════════════════════════════
+(function() {
+  const { ctx, W, H } = setupCanvas('cvs-roc');
+  const btns = document.querySelectorAll('#sec-roc .canvas-controls button');
+  let mode = 'causal';
+  let animT = 0;
+
+  btns.forEach(btn => {
+    btn.onclick = () => {
+      btns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      mode = btn.dataset.roc;
+      animT = 0;
+    };
+  });
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+
+    const spW = W * 0.45;
+    const spOx = spW / 2;
+    const spOy = H / 2;
+    const scale = 50;
+
+    // S-plane grid
+    ctx.strokeStyle = 'rgba(30,36,51,0.5)';
+    ctx.lineWidth = 0.5;
+    for (let i = -5; i <= 5; i++) {
+      ctx.beginPath();
+      ctx.moveTo(spOx + i * scale, 10);
+      ctx.lineTo(spOx + i * scale, H - 10);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(10, spOy + i * scale);
+      ctx.lineTo(spW - 10, spOy + i * scale);
+      ctx.stroke();
+    }
+
+    // Axes
+    ctx.strokeStyle = '#2a3040';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(10, spOy);
+    ctx.lineTo(spW - 10, spOy);
+    ctx.moveTo(spOx, 10);
+    ctx.lineTo(spOx, H - 10);
+    ctx.stroke();
+
+    ctx.fillStyle = '#8892a8';
+    ctx.font = '11px "Source Code Pro", monospace';
+    ctx.fillText('σ', spW - 20, spOy - 8);
+    ctx.fillText('jω', spOx + 8, 20);
+
+    // Pole at s = -2
+    const poleRe = -2;
+    const polePx = spOx + poleRe * scale;
+
+    // ROC shading with animated opacity
+    const rocAlpha = Math.min(0.12, animT * 0.003);
+    if (mode === 'causal') {
+      ctx.fillStyle = `rgba(78,205,196,${rocAlpha})`;
+      ctx.fillRect(polePx, 10, spW - polePx - 10, H - 20);
+
+      // Boundary line
+      ctx.strokeStyle = 'rgba(78,205,196,0.5)';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([6, 4]);
+      ctx.beginPath();
+      ctx.moveTo(polePx, 10);
+      ctx.lineTo(polePx, H - 10);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.fillStyle = '#4ecdc4';
+      ctx.font = '11px "Source Code Pro", monospace';
+      ctx.fillText('ROC: Re(s) > −2', polePx + 10, 30);
+    } else if (mode === 'anticausal') {
+      ctx.fillStyle = `rgba(255,107,107,${rocAlpha})`;
+      ctx.fillRect(10, 10, polePx - 10, H - 20);
+
+      ctx.strokeStyle = 'rgba(255,107,107,0.5)';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([6, 4]);
+      ctx.beginPath();
+      ctx.moveTo(polePx, 10);
+      ctx.lineTo(polePx, H - 10);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.fillStyle = '#ff6b6b';
+      ctx.font = '11px "Source Code Pro", monospace';
+      ctx.fillText('ROC: Re(s) < −2', 20, 30);
+    } else {
+      // Two-sided: between two poles (use -3 and -1)
+      const p1x = spOx + (-3) * scale;
+      const p2x = spOx + (-1) * scale;
+      ctx.fillStyle = `rgba(167,139,250,${rocAlpha})`;
+      ctx.fillRect(p1x, 10, p2x - p1x, H - 20);
+
+      ctx.strokeStyle = 'rgba(167,139,250,0.5)';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([6, 4]);
+      ctx.beginPath();
+      ctx.moveTo(p1x, 10);
+      ctx.lineTo(p1x, H - 10);
+      ctx.moveTo(p2x, 10);
+      ctx.lineTo(p2x, H - 10);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.fillStyle = '#a78bfa';
+      ctx.font = '11px "Source Code Pro", monospace';
+      ctx.fillText('ROC: −3 < Re(s) < −1', p1x + 5, 30);
+
+      // Extra pole
+      const ep = spOx + (-1) * scale;
+      ctx.strokeStyle = '#ff6b6b';
+      ctx.lineWidth = 2.5;
+      const cs = 6;
+      ctx.beginPath();
+      ctx.moveTo(ep - cs, spOy - cs);
+      ctx.lineTo(ep + cs, spOy + cs);
+      ctx.moveTo(ep + cs, spOy - cs);
+      ctx.lineTo(ep - cs, spOy + cs);
+      ctx.stroke();
+
+      const ep2 = spOx + (-3) * scale;
+      ctx.beginPath();
+      ctx.moveTo(ep2 - cs, spOy - cs);
+      ctx.lineTo(ep2 + cs, spOy + cs);
+      ctx.moveTo(ep2 + cs, spOy - cs);
+      ctx.lineTo(ep2 - cs, spOy + cs);
+      ctx.stroke();
+    }
+
+    // Pole marker
+    if (mode !== 'twosided') {
+      const pulse = 0.5 + 0.5 * Math.sin(animT * 0.05);
+      const grad = ctx.createRadialGradient(polePx, spOy, 0, polePx, spOy, 14 + pulse * 6);
+      grad.addColorStop(0, 'rgba(255,107,107,0.4)');
+      grad.addColorStop(1, 'rgba(255,107,107,0)');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(polePx, spOy, 14 + pulse * 6, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = '#ff6b6b';
+      ctx.lineWidth = 2.5;
+      const cs = 6;
+      ctx.beginPath();
+      ctx.moveTo(polePx - cs, spOy - cs);
+      ctx.lineTo(polePx + cs, spOy + cs);
+      ctx.moveTo(polePx + cs, spOy - cs);
+      ctx.lineTo(polePx - cs, spOy + cs);
+      ctx.stroke();
+
+      ctx.fillStyle = '#8892a8';
+      ctx.font = '10px "Source Code Pro", monospace';
+      ctx.fillText('s = −2', polePx - 15, spOy + 22);
+    }
+
+    // ── RIGHT: Time domain ──
+    const trX = spW + 40;
+    const trW = W - trX - 20;
+    const trMid = H / 2;
+    const trAmp = 120;
+
+    ctx.fillStyle = '#8892a8';
+    ctx.font = '11px "Source Code Pro", monospace';
+    ctx.fillText('f(t)', trX, 22);
+    ctx.fillText('t →', W - 30, trMid + 16);
+
+    ctx.strokeStyle = '#1e2433';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(trX, trMid);
+    ctx.lineTo(trX + trW, trMid);
+    ctx.stroke();
+
+    // t=0 marker
+    const t0x = trX + trW * 0.3;
+    ctx.strokeStyle = 'rgba(136,146,168,0.3)';
+    ctx.setLineDash([3, 3]);
+    ctx.beginPath();
+    ctx.moveTo(t0x, 30);
+    ctx.lineTo(t0x, H - 20);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#8892a8';
+    ctx.fillText('t=0', t0x + 4, H - 20);
+
+    // Draw time signal
+    const N = 200;
+    const drawN = Math.min(N, Math.floor(animT * 1.5));
+
+    if (mode === 'causal') {
+      ctx.strokeStyle = '#ffe66d';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      for (let i = 0; i < drawN; i++) {
+        const frac = i / N;
+        const t = (frac - 0.3) * 8;
+        let v = 0;
+        if (t >= 0) v = Math.exp(-2 * t);
+        const x = trX + frac * trW;
+        const y = trMid - v * trAmp;
+        i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+      ctx.fillStyle = '#ffe66d';
+      ctx.font = '12px "Source Code Pro", monospace';
+      ctx.fillText('e⁻²ᵗu(t)', trX + 10, 50);
+    } else if (mode === 'anticausal') {
+      ctx.strokeStyle = '#ff6b6b';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      for (let i = 0; i < drawN; i++) {
+        const frac = i / N;
+        const t = (frac - 0.3) * 8;
+        let v = 0;
+        if (t < 0) v = -Math.exp(-2 * t);  // grows for t<0
+        v = Math.max(-1.5, Math.min(1.5, v));
+        const x = trX + frac * trW;
+        const y = trMid - v * trAmp * 0.3;
+        i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+      ctx.fillStyle = '#ff6b6b';
+      ctx.font = '12px "Source Code Pro", monospace';
+      ctx.fillText('−e⁻²ᵗu(−t)', trX + 10, 50);
+    } else {
+      // Two-sided: sum of causal and anti-causal parts
+      ctx.strokeStyle = '#a78bfa';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      for (let i = 0; i < drawN; i++) {
+        const frac = i / N;
+        const t = (frac - 0.3) * 8;
+        let v = 0;
+        if (t >= 0) v = Math.exp(-1 * t);
+        else v = Math.exp(3 * t);  // anti-causal part
+        v = Math.max(-1.5, Math.min(1.5, v)) * 0.7;
+        const x = trX + frac * trW;
+        const y = trMid - v * trAmp;
+        i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+      ctx.fillStyle = '#a78bfa';
+      ctx.font = '12px "Source Code Pro", monospace';
+      ctx.fillText('Two-sided signal', trX + 10, 50);
+    }
+
+    // F(s) expression
+    ctx.fillStyle = '#8892a8';
+    ctx.font = '12px "Source Code Pro", monospace';
+    const fExpr = mode === 'twosided' ? 'F(s) = 1/(s+1) + 1/(s+3)' : 'F(s) = 1/(s + 2)';
+    ctx.fillText(fExpr, trX, H - 40);
+    ctx.fillText('Same F(s), different ROC → different f(t)!', trX, H - 20);
+
+    animT++;
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+</script>
+</body>
+</html>
