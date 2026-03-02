@@ -2,7 +2,7 @@
 
 An interactive, animated visual guide to the Laplace Transform, built with vanilla HTML, CSS, and Canvas. Designed for engineering students, self-learners, and anyone who wants to build geometric intuition for one of the most important tools in applied mathematics.
 
-**[→ View the live guide](https://yourusername.github.io/laplace-transform-guide/)**
+**[→ View the live guide](https://brendanjameslynskey.github.io/LaplaceGuide/)**
 
 ---
 
