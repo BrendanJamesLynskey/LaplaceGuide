@@ -20,18 +20,7 @@ The guide walks through seven sections, each with interactive animations you can
 | **Solving ODEs** | Damped spring–mass system response | Damping ratio ζ and natural frequency ωₙ sliders |
 | **Region of Convergence** | How the same F(s) with different ROCs gives different time signals | Causal / anti-causal / two-sided presets |
 
-## Getting Started
 
-### View locally
-
-Open `index.html` in any modern browser. No build step, no dependencies, no server required.
-
-### Deploy to GitHub Pages
-
-1. Fork or clone this repository.
-2. Go to **Settings → Pages**.
-3. Set the source to the branch and folder containing `index.html` (e.g. `main` / `root` or `main` / `docs`).
-4. Your guide will be live at `https://<username>.github.io/<repo-name>/`.
 
 ## Tech Stack
 
