@@ -187,6 +187,25 @@
     color: var(--accent);
   }
 
+  .section h3 {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 1.5rem;
+    font-weight: 400;
+    line-height: 1.3;
+    margin-top: 2.5rem;
+    margin-bottom: 1rem;
+    color: var(--text);
+  }
+
+  .cancel-status {
+    font-family: 'Source Code Pro', monospace;
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    flex: 1 1 auto;
+    text-align: right;
+  }
+
   /* ── CANVAS CONTAINERS ── */
   .canvas-wrap {
     position: relative;
@@ -525,6 +544,48 @@
     <em>probing function</em>; the signal <em>f(t)</em> is whatever the system produces. The
     integral measures how much the two overlap. Convergence of that integral — i.e. whether the
     probe wins the tug-of-war against the signal's growth — is what stability ultimately hinges on.
+  </p>
+
+  <h3>Why the minus sign in the first place?</h3>
+  <p>
+    The transform is a <strong>projection</strong> — it asks "how much of <em>f(t)</em>
+    looks like e<sup>st</sup>?" To pull that coefficient out, the integrand has to
+    <em>cancel the basis function</em> being projected onto, so the only thing left under the
+    integral is the projection coefficient itself. Multiplying by e<sup>−st</sup> does exactly
+    that: where <em>f(t)</em> contains an e<sup>st</sup> mode, the product collapses to a
+    constant, and the integral cleanly accumulates it.
+  </p>
+  <p>
+    It's the same reason a Hilbert inner product conjugates the second argument
+    (<code>⟨f,g⟩ = ∫ f·g*</code>), and the same reason Fourier uses
+    e<sup>−jωt</sup> rather than e<sup>+jωt</sup>: the kernel must be the
+    <strong>inverse</strong> of the basis function, never the basis itself.
+    Without the flip, integration would compound the basis instead of extracting it —
+    you wouldn't have a projection at all.
+  </p>
+  <p>
+    Drag σ in the figure below to see the cancellation happen. With
+    <em>f(t) = e<sup>at</sup></em> and probe e<sup>−σt</sup>, their product is
+    <code>e<sup>(a−σ)t</sup></code>. Watch what happens as σ moves through the value of <em>a</em>:
+  </p>
+
+  <div class="canvas-wrap">
+    <canvas id="cvs-cancellation" width="920" height="340"></canvas>
+    <div class="canvas-controls">
+      <label>σ <input type="range" id="ctrl-cancel-sigma" min="-0.5" max="3" step="0.05" value="2"></label>
+      <span id="cancel-status" class="cancel-status"></span>
+    </div>
+  </div>
+
+  <p>
+    At σ&nbsp;=&nbsp;<em>a</em> the probe perfectly undoes the signal's growth — the integrand
+    flattens to <code>1</code>, the integral diverges linearly, and that's exactly the pole at
+    <em>s</em>&nbsp;=&nbsp;<em>a</em>. To the right (σ&gt;<em>a</em>) the probe wins: the
+    integrand decays, the integral converges, you're inside the ROC. To the left
+    (σ&lt;<em>a</em>) the signal wins: the integrand explodes and the integral diverges.
+    Without the minus sign in the kernel, σ would <em>add</em> to <em>a</em> rather than fight
+    it — there'd be no σ value at which the kernel cancels the basis, and the projection
+    structure would collapse.
   </p>
 
   <div class="prop-grid">
@@ -1209,7 +1270,155 @@ sections.forEach(s => observer.observe(s));
 })();
 
 // ═══════════════════════════════════════════════
-// 6 — ODE SOLVER ANIMATION
+// 4 — SIGN-FLIP CANCELLATION
+// ═══════════════════════════════════════════════
+(function() {
+  const { ctx, W, H } = setupCanvas('cvs-cancellation');
+  const sigmaSlider = document.getElementById('ctrl-cancel-sigma');
+  const statusEl = document.getElementById('cancel-status');
+  const A_RATE = 1.0; // signal growth rate (fixed)
+
+  function draw() {
+    const sigma = parseFloat(sigmaSlider.value);
+    ctx.clearRect(0, 0, W, H);
+
+    const padL = 70, padR = 200, padT = 36, padB = 38;
+    const plotW = W - padL - padR;
+    const plotH = H - padT - padB;
+    const tMax = 4;
+    const yMax = 5;
+
+    // Title
+    ctx.fillStyle = '#e2e8f0';
+    ctx.font = '12px "Source Code Pro", monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText('Probe vs signal — what survives multiplication', padL, 20);
+
+    // Grid
+    ctx.strokeStyle = '#1e2433';
+    ctx.lineWidth = 1;
+    for (let i = 0; i <= 4; i++) {
+      const x = padL + (i / 4) * plotW;
+      ctx.beginPath();
+      ctx.moveTo(x, padT);
+      ctx.lineTo(x, padT + plotH);
+      ctx.stroke();
+    }
+    for (let i = 0; i <= yMax; i++) {
+      const y = padT + plotH - (i / yMax) * plotH;
+      ctx.beginPath();
+      ctx.moveTo(padL, y);
+      ctx.lineTo(padL + plotW, y);
+      ctx.stroke();
+    }
+
+    // Axis tick labels
+    ctx.fillStyle = '#8892a8';
+    ctx.font = '11px "Source Code Pro", monospace';
+    ctx.textAlign = 'right';
+    for (let i = 0; i <= yMax; i++) {
+      const y = padT + plotH - (i / yMax) * plotH;
+      ctx.fillText(i.toString(), padL - 8, y + 4);
+    }
+    ctx.textAlign = 'center';
+    for (let i = 0; i <= 4; i++) {
+      const x = padL + (i / 4) * plotW;
+      ctx.fillText(i.toString(), x, padT + plotH + 18);
+    }
+    ctx.textAlign = 'left';
+    ctx.fillText('t', padL + plotW + 8, padT + plotH + 5);
+
+    // Reference line at integrand = 1 (the matched/flat threshold)
+    ctx.strokeStyle = 'rgba(255,230,109,0.3)';
+    ctx.setLineDash([4, 4]);
+    const yOne = padT + plotH - (1 / yMax) * plotH;
+    ctx.beginPath();
+    ctx.moveTo(padL, yOne);
+    ctx.lineTo(padL + plotW, yOne);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Plot helper — clips at yMax with a soft top
+    function plot(fn, color, lw) {
+      ctx.strokeStyle = color;
+      ctx.lineWidth = lw;
+      ctx.beginPath();
+      const N = 240;
+      let started = false;
+      for (let i = 0; i <= N; i++) {
+        const t = (i / N) * tMax;
+        const v = fn(t);
+        if (!isFinite(v) || v < 0) continue;
+        const x = padL + (t / tMax) * plotW;
+        const yClipped = Math.min(yMax, v);
+        const y = padT + plotH - (yClipped / yMax) * plotH;
+        if (!started) { ctx.moveTo(x, y); started = true; }
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
+
+    // 1. signal f(t) = e^(at)  (red)
+    plot(t => Math.exp(A_RATE * t), '#ff6b6b', 2);
+    // 2. probe e^(-σt)  (teal)
+    plot(t => Math.exp(-sigma * t), '#4ecdc4', 2);
+    // 3. integrand f·probe = e^((a-σ)t)  (yellow, thicker — this is the star)
+    plot(t => Math.exp((A_RATE - sigma) * t), '#ffe66d', 3);
+
+    // Legend
+    const legX = padL + plotW + 18;
+    let legY = padT + 8;
+    const legend = [
+      { color: '#ff6b6b', text: 'f(t) = e^(at)' },
+      { color: '#4ecdc4', text: 'probe = e^(−σt)' },
+      { color: '#ffe66d', text: 'integrand = e^((a−σ)t)' }
+    ];
+    legend.forEach(l => {
+      ctx.fillStyle = l.color;
+      ctx.fillRect(legX, legY, 18, 3);
+      ctx.fillStyle = '#e2e8f0';
+      ctx.font = '11px "Source Code Pro", monospace';
+      ctx.textAlign = 'left';
+      ctx.fillText(l.text, legX + 24, legY + 5);
+      legY += 22;
+    });
+
+    // Live readout
+    legY += 14;
+    ctx.fillStyle = '#8892a8';
+    ctx.font = '11px "Source Code Pro", monospace';
+    ctx.fillText(`a = ${A_RATE.toFixed(2)}`, legX, legY);
+    legY += 18;
+    ctx.fillText(`σ = ${sigma.toFixed(2)}`, legX, legY);
+    legY += 18;
+    const diff = A_RATE - sigma;
+    const diffColor = Math.abs(diff) < 0.06 ? '#ffe66d'
+                    : diff < 0 ? '#4ecdc4' : '#ff6b6b';
+    ctx.fillStyle = diffColor;
+    ctx.fillText(`a − σ = ${diff.toFixed(2)}`, legX, legY);
+
+    // Status text below canvas
+    let status, statusColor;
+    if (Math.abs(sigma - A_RATE) < 0.06) {
+      status = 'σ ≈ a — integrand flat — pole at s = a (resonance)';
+      statusColor = '#ffe66d';
+    } else if (sigma > A_RATE) {
+      status = 'σ > a — probe wins — integrand decays — inside ROC';
+      statusColor = '#4ecdc4';
+    } else {
+      status = 'σ < a — signal wins — integrand explodes — outside ROC';
+      statusColor = '#ff6b6b';
+    }
+    statusEl.textContent = status;
+    statusEl.style.color = statusColor;
+  }
+
+  sigmaSlider.addEventListener('input', draw);
+  draw();
+})();
+
+// ═══════════════════════════════════════════════
+// 7 — ODE SOLVER ANIMATION
 // ═══════════════════════════════════════════════
 (function() {
   const { ctx, W, H } = setupCanvas('cvs-ode');
@@ -1360,7 +1569,7 @@ sections.forEach(s => observer.observe(s));
 })();
 
 // ═══════════════════════════════════════════════
-// 7 — ROC ANIMATION
+// 8 — ROC ANIMATION
 // ═══════════════════════════════════════════════
 (function() {
   const { ctx, W, H } = setupCanvas('cvs-roc');
