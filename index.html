@@ -181,6 +181,12 @@
     font-weight: 500;
   }
 
+  .section code {
+    font-family: 'Source Code Pro', monospace;
+    font-size: 0.95em;
+    color: var(--accent);
+  }
+
   /* ── CANVAS CONTAINERS ── */
   .canvas-wrap {
     position: relative;
@@ -504,9 +510,80 @@
   </div>
 </section>
 
-<!-- ═══════════ 4 — COMMON TRANSFORMS ═══════════ -->
+<!-- ═══════════ 4 — SIGN REVERSAL & STABILITY ═══════════ -->
+<section class="section" id="sec-signs">
+  <div class="section-label">04 — Sign Reversal</div>
+  <h2>Why the Right Half-Plane Means Unstable</h2>
+  <p>
+    The previous section <em>asserted</em> that right-half-plane poles blow up. That claim
+    rests on a small but important piece of bookkeeping: the interplay of <strong>three signs</strong>
+    — the minus in the kernel <code>e<sup>−st</sup></code>, the sign of the system's natural
+    growth rate, and the sign that survives when those two are multiplied together inside the integral.
+  </p>
+  <p>
+    Think of the transform as an <strong>inner product</strong>. The kernel is a tunable
+    <em>probing function</em>; the signal <em>f(t)</em> is whatever the system produces. The
+    integral measures how much the two overlap. Convergence of that integral — i.e. whether the
+    probe wins the tug-of-war against the signal's growth — is what stability ultimately hinges on.
+  </p>
+
+  <div class="prop-grid">
+    <div class="prop-card">
+      <h4>① The Probe</h4>
+      <div class="formula">e<sup>−st</sup> = e<sup>−σt</sup>·e<sup>−jωt</sup></div>
+      <div class="desc">
+        The minus sign in the forward transform makes the kernel <strong>decay</strong> for
+        σ&gt;0 and <strong>grow</strong> for σ&lt;0. Re(<em>s</em>) controls the probe's
+        appetite — how fast it suppresses what it's measuring.
+      </div>
+    </div>
+    <div class="prop-card">
+      <h4>② The System</h4>
+      <div class="formula">f(t) = e<sup>at</sup>u(t)</div>
+      <div class="desc">
+        A causal first-order mode. The sign of <em>a</em> sets the system's fate: <em>a</em>&lt;0
+        decays (stable, pole in LHP); <em>a</em>&gt;0 explodes (unstable, pole in RHP).
+        No minus sign in sight — the system grows or decays under its own power.
+      </div>
+    </div>
+    <div class="prop-card">
+      <h4>③ The Combined Integrand</h4>
+      <div class="formula">f(t)·e<sup>−st</sup> = e<sup>−(s−a)t</sup></div>
+      <div class="desc">
+        Multiplying probe × system, the exponents <strong>subtract</strong>. The integral
+        ∫₀<sup>∞</sup> e<sup>−(s−a)t</sup> dt converges only when
+        Re(<em>s</em>−<em>a</em>) &gt; 0 — i.e. <strong>σ &gt; a</strong>. That single inequality
+        is the entire story.
+      </div>
+    </div>
+  </div>
+
+  <p>
+    Carry through the integration and you get <code>F(s) = 1/(s−a)</code>, with a pole at
+    <em>s</em>&nbsp;=&nbsp;<em>a</em> and ROC σ&gt;<em>a</em>. Notice the second sign reversal:
+    the integration step <em>flips the sign of a</em> in the denominator — what entered as
+    <code>e<sup>+at</sup></code> in the time domain emerges as <code>(s−a)</code> in the
+    <em>s</em>-domain.
+  </p>
+  <p>
+    Now the punchline. The <strong>steady-state frequency response</strong> lives on the
+    imaginary axis (σ&nbsp;=&nbsp;0) — that's where <em>s</em>&nbsp;=&nbsp;<em>jω</em> turns
+    the Laplace transform into the Fourier transform. For the imaginary axis to lie inside the
+    ROC σ&gt;<em>a</em>, we need <strong>a&lt;0</strong> — the pole must sit in the
+    <strong>left half-plane</strong>.
+  </p>
+  <p>
+    If <em>a</em>&gt;0, the pole is in the RHP, the imaginary axis is to its <em>left</em>,
+    and the convergence inequality fails on the very axis where physical sinusoids live. The
+    Fourier transform doesn't exist; the time-domain response grows without bound. That is
+    what RHP poles <em>are</em> — they're poles whose ROC excludes the real-world frequency axis,
+    and the signal that produced them was unbounded all along.
+  </p>
+</section>
+
+<!-- ═══════════ 5 — COMMON TRANSFORMS ═══════════ -->
 <section class="section" id="sec-table">
-  <div class="section-label">04 — Reference</div>
+  <div class="section-label">05 — Reference</div>
   <h2>Common Laplace Pairs</h2>
   <p>
     These are the fundamental transform pairs you'll encounter most often.
@@ -532,9 +609,9 @@
   </table>
 </section>
 
-<!-- ═══════════ 5 — PROPERTIES ═══════════ -->
+<!-- ═══════════ 6 — PROPERTIES ═══════════ -->
 <section class="section" id="sec-properties">
-  <div class="section-label">05 — Properties</div>
+  <div class="section-label">06 — Properties</div>
   <h2>Key Properties</h2>
   <p>
     The real power of the Laplace Transform comes from its operational properties,
@@ -585,9 +662,9 @@
   </div>
 </section>
 
-<!-- ═══════════ 6 — SOLVING ODEs ═══════════ -->
+<!-- ═══════════ 7 — SOLVING ODEs ═══════════ -->
 <section class="section" id="sec-ode">
-  <div class="section-label">06 — Application</div>
+  <div class="section-label">07 — Application</div>
   <h2>Solving ODEs with Laplace</h2>
   <p>
     The classic application: transform a differential equation, solve the resulting algebra, then
@@ -603,9 +680,9 @@
   </div>
 </section>
 
-<!-- ═══════════ 7 — ROC ═══════════ -->
+<!-- ═══════════ 8 — ROC ═══════════ -->
 <section class="section" id="sec-roc">
-  <div class="section-label">07 — Region of Convergence</div>
+  <div class="section-label">08 — Region of Convergence</div>
   <h2>Why the ROC Matters</h2>
   <p>
     The Laplace Transform integral only converges for certain values of <strong>s</strong>.

@@ -8,13 +8,14 @@ An interactive, animated visual guide to the Laplace Transform, built with vanil
 
 ## What's Inside
 
-The guide walks through seven sections, each with interactive animations you can control in real time:
+The guide walks through eight sections, each with interactive animations you can control in real time:
 
 | Section | What It Covers | Interactive Elements |
 |---|---|---|
 | **Intuition** | What the transform actually does — decomposing a signal into complex exponentials | σ/ω sliders, animated integration sweep |
 | **The Kernel** | Anatomy of e⁻ˢᵗ as envelope × oscillation | σ/ω sliders, phase-animated phasor |
 | **The s-Plane** | Poles, zeros, and stability regions | Four presets with animated impulse responses |
+| **Sign Reversal** | Why right-half-plane poles are unstable — the minus sign in e⁻ˢᵗ, the system's growth rate, and how they combine inside the integral | — |
 | **Common Pairs** | Reference table of essential transform pairs | — |
 | **Key Properties** | Linearity, differentiation, convolution, initial/final value theorems | — |
 | **Solving ODEs** | Damped spring–mass system response | Damping ratio ζ and natural frequency ωₙ sliders |
